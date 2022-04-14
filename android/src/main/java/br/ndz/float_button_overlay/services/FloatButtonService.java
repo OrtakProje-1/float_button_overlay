@@ -170,103 +170,122 @@ public class FloatButtonService extends Service {
 
         StartFloatButtonLayout();
 
-        mFloatingWidget.setOnTouchListener(new View.OnTouchListener() {
+        mFloatingWidget.setOnTouchListener(new OnTouchListener() {
+    private GestureDetector gestureDetector = new GestureDetector(Test.this, new GestureDetector.SimpleOnGestureListener() {
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+             SendBroadcastToFinishApp();
+             Log.i(TAG, "Stopping service");
+             stopSelf();
+             stopForeground(true);
+             android.os.Process.killProcess(android.os.Process.myPid());
+            return super.onDoubleTap(e);
+        }
+    });
 
-            private int initialX;
-            private int initialY;
-            private float initialTouchX;
-            private float initialTouchY;
-            private int initialWidth;
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        return true;
+    }
+});
 
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
+        // mFloatingWidget.setOnTouchListener(new View.OnTouchListener() {
 
-                int initialHeight = mFloatingWidget.getHeight();
-                initialWidth = mFloatingWidget.getWidth();
+        //     private int initialX;
+        //     private int initialY;
+        //     private float initialTouchX;
+        //     private float initialTouchY;
+        //     private int initialWidth;
 
-                switch (event.getAction()) {
+        //     @Override
+        //     public boolean onTouch(View v, MotionEvent event) {
 
-                    case MotionEvent.ACTION_DOWN:
+        //         int initialHeight = mFloatingWidget.getHeight();
+        //         initialWidth = mFloatingWidget.getWidth();
 
-                        initialX = params.x;
-                        initialY = params.y;
-                        initialTouchX = event.getRawX();
-                        initialTouchY = event.getRawY();
+        //         switch (event.getAction()) {
 
-                        animateButton(1.1f, 1.1f);
+        //             case MotionEvent.ACTION_DOWN:
 
-                        //Getting press time
-                        startClickTime = Calendar.getInstance().getTimeInMillis();
-                        return false;
+        //                 initialX = params.x;
+        //                 initialY = params.y;
+        //                 initialTouchX = event.getRawX();
+        //                 initialTouchY = event.getRawY();
 
-                    case MotionEvent.ACTION_UP:
+        //                 animateButton(1.1f, 1.1f);
 
-                        int Xdiff = (int) (event.getRawX() - initialTouchX);
-                        int Ydiff = (int) (event.getRawY() - initialTouchY);
+        //                 //Getting press time
+        //                 startClickTime = Calendar.getInstance().getTimeInMillis();
+        //                 return false;
 
-                        animateButton(1f, 1f);
+        //             case MotionEvent.ACTION_UP:
 
-                        if (params.y >= endArea) {
-                            params.alpha = 1;
+        //                 int Xdiff = (int) (event.getRawX() - initialTouchX);
+        //                 int Ydiff = (int) (event.getRawY() - initialTouchY);
 
-                            final Handler handler = new Handler();
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
+        //                 animateButton(1f, 1f);
 
-                                    Log.i(TAG, "Runnable: Alpha Decrease" + params.alpha);
-                                    if (params.alpha > 0) {
-                                        params.alpha = (float) (params.alpha - 0.06);
-                                        params.x = params.x + 50;
-                                        try {
-                                            mWindowManager.updateViewLayout(mFloatingWidget, params);
-                                        } catch (Exception e) {
-                                            Log.i(TAG, "An error has occurred: " + e.getMessage() + "StackTrace: " + e.getStackTrace());
-                                        }
+        //                 if (params.y >= endArea) {
+        //                     params.alpha = 1;
 
-                                        Log.i(TAG, "Alpha Decrease" + params.alpha);
-                                        handler.postDelayed(this, 1);
-                                    }
-                                    Log.i(TAG, "Runnable: Finished");
+        //                     final Handler handler = new Handler();
+        //                     handler.post(new Runnable() {
+        //                         @Override
+        //                         public void run() {
 
-                                    if (params.alpha <= 0) {
+        //                             Log.i(TAG, "Runnable: Alpha Decrease" + params.alpha);
+        //                             if (params.alpha > 0) {
+        //                                 params.alpha = (float) (params.alpha - 0.06);
+        //                                 params.x = params.x + 50;
+        //                                 try {
+        //                                     mWindowManager.updateViewLayout(mFloatingWidget, params);
+        //                                 } catch (Exception e) {
+        //                                     Log.i(TAG, "An error has occurred: " + e.getMessage() + "StackTrace: " + e.getStackTrace());
+        //                                 }
 
-                                        SendBroadcastToFinishApp();
+        //                                 Log.i(TAG, "Alpha Decrease" + params.alpha);
+        //                                 handler.postDelayed(this, 1);
+        //                             }
+        //                             Log.i(TAG, "Runnable: Finished");
 
-                                        Log.i(TAG, "Stopping service");
-                                        stopSelf();
-                                        stopForeground(true);
-                                        android.os.Process.killProcess(android.os.Process.myPid());
-                                    }
+        //                             if (params.alpha <= 0) {
 
-                                }
-                            });
-                        }
+        //                                 SendBroadcastToFinishApp();
 
-                        /**
-                         * Starts app on click in Float Button
-                         * */
-                        long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
-                        if (clickDuration < MAX_CLICK_DURATION) {
-                            if(packageName != null && !packageName.isEmpty()){
-                                StartAppIntent(packageName, activityName);
-                            }
+        //                                 Log.i(TAG, "Stopping service");
+        //                                 stopSelf();
+        //                                 stopForeground(true);
+        //                                 android.os.Process.killProcess(android.os.Process.myPid());
+        //                             }
 
-                            Log.i(TAG, "Will click on channel " + CHANNEL);
-                            FloatButtonOverlayPlugin.invokeCallBack("onClickCallback", null);
-                            Log.i(TAG, "Clicked");
-                        }
+        //                         }
+        //                     });
+        //                 }
 
-                        return false;
-                    case MotionEvent.ACTION_MOVE:
-                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
-                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
-                        mWindowManager.updateViewLayout(mFloatingWidget, params);
-                        return false;
-                }
-                return false;
-            }
-        });
+        //                 /**
+        //                  * Starts app on click in Float Button
+        //                  * */
+        //                 long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
+        //                 if (clickDuration < MAX_CLICK_DURATION) {
+        //                     if(packageName != null && !packageName.isEmpty()){
+        //                         StartAppIntent(packageName, activityName);
+        //                     }
+
+        //                     Log.i(TAG, "Will click on channel " + CHANNEL);
+        //                     FloatButtonOverlayPlugin.invokeCallBack("onClickCallback", null);
+        //                     Log.i(TAG, "Clicked");
+        //                 }
+
+        //                 return false;
+        //             case MotionEvent.ACTION_MOVE:
+        //                 params.x = initialX + (int) (event.getRawX() - initialTouchX);
+        //                 params.y = initialY + (int) (event.getRawY() - initialTouchY);
+        //                 mWindowManager.updateViewLayout(mFloatingWidget, params);
+        //                 return false;
+        //         }
+        //         return false;
+        //     }
+        // });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             startMyOwnForeground();
@@ -365,9 +384,9 @@ public class FloatButtonService extends Service {
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                     PixelFormat.TRANSLUCENT);
 
-            params.gravity = Gravity.TOP | Gravity.LEFT;
-            params.x = 0;
-            params.y = 100;
+            params.gravity =  Gravity.CENTER; //Gravity.TOP | Gravity.LEFT;
+            // params.x = 0;
+            // params.y = 100;
 
             mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(iconWidth, iconHeight);
