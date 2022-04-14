@@ -17,17 +17,18 @@ class FloatButtonOverlay {
     _channel.invokeMethod('checkPermissions');
   }
 
-  static Future<bool> openOverlay(
-      {String iconPath,
-      String packageName,
-      String activityName,
-      String notificationText,
-      String notificationTitle,
-      bool showTransparentCircle = true,
-      int iconWidth = 150,
-      int iconHeight = 150,
-      int transpCircleWidth = 200,
-      int transpCircleHeight = 200}) async {
+  static Future<bool> openOverlay({
+    String? iconPath,
+    String? packageName,
+    String? activityName,
+    String? notificationText,
+    String? notificationTitle,
+    bool showTransparentCircle = true,
+    int iconWidth = 150,
+    int iconHeight = 150,
+    int transpCircleWidth = 200,
+    int transpCircleHeight = 200,
+  }) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'packageName': packageName,
       'activityName': activityName,
@@ -49,16 +50,19 @@ class FloatButtonOverlay {
     return retorno;
   }
 
-  static Future<bool> registerCallback(OnClickListener callBackFunction,
-      [OnClickListener onClickCallback]) async {
+  static Future<bool> registerCallback(
+    OnClickListener callBackFunction, [
+    OnClickListener? onClickCallback,
+  ]) async {
     _channel.setMethodCallHandler(
-      (MethodCall call) {
+      (MethodCall call) async {
         switch (call.method) {
           case "callback":
-            callBackFunction('openOverlayCallback');
-            break;
+            return callBackFunction('openOverlayCallback');
+
           case "onClickCallback":
-            onClickCallback("onClickCallback");
+            if (onClickCallback != null)
+              return onClickCallback("onClickCallback");
             break;
         }
       },
